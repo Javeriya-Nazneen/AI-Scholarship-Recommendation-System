@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="grid grid-2" style="align-items: center; min-height: 60vh;">
+        <div>
+            <h1>🚀 Join AI-Scholar Today!</h1>
+            <p>Create your free account and start finding perfect scholarships</p>
+            <div style="margin-top: 2rem;">
+                <h3>✨ What You Get:</h3>
+                <ul>
+                    <li>🤖 AI-powered personalized recommendations</li>
+                    <li>📚 Access to 5,000+ scholarships</li>
+                    <li>📊 Application tracking dashboard</li>
+                    <li>💬 24/7 AI chatbot assistance</li>
+                    <li>⏰ Deadline notifications</li>
+                    <li>📈 Success analytics</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="mb-3">Create Your Account</h2>
+            
+            <!-- Registration Step Indicator -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+                <div style="text-align: center; flex: 1;" id="step1-indicator">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto;">1</div>
+                    <small>Account Info</small>
+                </div>
+                <div style="text-align: center; flex: 1;" id="step2-indicator">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #ddd; color: #666; display: flex; align-items: center; justify-content: center; margin: 0 auto;">2</div>
+                    <small>Verify OTP</small>
+                </div>
+                <div style="text-align: center; flex: 1;" id="step3-indicator">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #ddd; color: #666; display: flex; align-items: center; justify-content: center; margin: 0 auto;">3</div>
+                    <small>Complete Profile</small>
+                </div>
+            </div>
+            
+            <form method="POST" id="registrationForm">
+                {% csrf_token %}
+                
+                <!-- Step 1: Basic Registration -->
+                <div id="step1" class="registration-step">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i> Email Address <span style="color: red;">*</span>
+                        </label>
+                        <input type="email" name="email" class="form-control" required placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i> Phone Number <span style="color: red;">*</span>
+                        </label>
+                        <input type="tel" name="phone" class="form-control" required placeholder="+91 9876543210" pattern="[+]?[0-9]{10,15}">
+                        <small style="color: #666;">Include country code (e.g., +91 for India)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Username <span style="color: red;">*</span>
+                        </label>
+                        {{ form.username }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-lock"></i> Password <span style="color: red;">*</span>
+                        </label>
+                        {{ form.password1 }}
+                        <small style="color: #666;">Minimum 8 characters with letters and numbers</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-lock"></i> Confirm Password <span style="color: red;">*</span>
+                        </label>
+                        {{ form.password2 }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" name="terms" required style="margin-right: 10px;">
+                            <span>I agree to the <a href="#" style="color: var(--primary);">Terms & Conditions</a></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Step 2: OTP Verification (Hidden by default) -->
+                <div id="step2" class="registration-step" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h3>Verify Your Identity</h3>
+                        <p>We've sent a 6-digit OTP to your email and phone</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-key"></i> Enter OTP Code
+                        </label>
+                        <input type="text" name="otp_code" class="form-control" placeholder="Enter 6-digit OTP" maxlength="6" pattern="[0-9]{6}" style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;">
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <p>Didn't receive OTP? <a href="#" id="resendOTP" style="color: var(--primary);">Resend OTP</a></p>
+                        <p id="otpTimer" style="color: #666;">Expires in: <span id="countdown">05:00</span></p>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Profile Setup (Hidden by default) -->
+                <div id="step3" class="registration-step" style="display: none;">
+                    <h3 style="margin-bottom: 1.5rem;">Complete Your Profile</h3>
+                    <p style="color: #666; margin-bottom: 1.5rem;">This helps us recommend the best scholarships for you</p>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Age</label>
+                        <input type="number" name="age" class="form-control" placeholder="Your age" min="5" max="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Other</option>
+                            <option value="N">Prefer not to say</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-control">
+                            <option value="GEN">General</option>
+                            <option value="SC">Scheduled Caste (SC)</option>
+                            <option value="ST">Scheduled Tribe (ST)</option>
+                            <option value="OBC">Other Backward Class (OBC)</option>
+                            <option value="EWS">Economically Weaker Section (EWS)</option>
+                            <option value="MINORITY">Minority</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Education Level</label>
+                        <select name="education_level" class="form-control">
+                            <option value="">Select Education Level</option>
+                            <option value="HS">High School</option>
+                            <option value="UG">Undergraduate</option>
+                            <option value="PG">Postgraduate</option>
+                            <option value="PHD">PhD</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Course/Stream</label>
+                        <input type="text" name="course_stream" class="form-control" placeholder="e.g., B.Tech, B.A., M.Sc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">CGPA (1-10 scale)</label>
+                        <input type="number" name="gpa" class="form-control" placeholder="e.g., 8.5" min="1" max="10" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Marks Percentage</label>
+                        <input type="number" name="marks_percentage" class="form-control" placeholder="e.g., 85.5" min="0" max="100" step="0.01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Annual Family Income (₹)</label>
+                        <input type="number" name="family_income" class="form-control" placeholder="e.g., 500000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location (City)</label>
+                        <input type="text" name="location" class="form-control" placeholder="e.g., Mumbai, Delhi">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Interests (comma-separated)</label>
+                        <input type="text" name="interests" class="form-control" placeholder="e.g., Science, Sports, Music">
+                    </div>
+                </div>
+                
+                {% if form.errors %}
+                <div style="color: var(--danger); margin-bottom: 1rem; padding: 1rem; background: #fee; border-radius: 8px;">
+                    <strong>Please fix the following errors:</strong>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>• {{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" style="margin-bottom: 1rem; padding: 1rem; border-radius: 8px; background: {% if message.tags == 'error' %}#fee{% else %}#efe{% endif %};">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" id="prevBtn" style="flex: 1; display: none;">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" style="flex: 1;">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" style="flex: 1; display: none;">
+                        <i class="fas fa-check"></i> Complete Registration
+                    </button>
+                </div>
+            </form>
+            
+            <p class="text-center mt-3">
+                Already have an account? <a href="{% url 'login' %}">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 3;
+    
+    // Form navigation
+    document.getElementById('nextBtn').addEventListener('click', function() {
+        if (validateStep(currentStep)) {
+            if (currentStep === 1) {
+                // Simulate OTP sending (in production, make API call)
+                showStep(2);
+                startOTPTimer();
+            } else if (currentStep === 2) {
+                // Verify OTP (in production, make API call)
+                const otpCode = document.querySelector('[name="otp_code"]').value;
+                if (otpCode && otpCode.length === 6) {
+                    showStep(3);
+                } else {
+                    alert('Please enter a valid 6-digit OTP');
+                }
+            }
+        }
+    });
+    
+    document.getElementById('prevBtn').addEventListener('click', function() {
+        if (currentStep > 1) {
+            showStep(currentStep - 1);
+        }
+    });
+    
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.registration-step').forEach(s => s.style.display = 'none');
+        
+        // Show current step
+        document.getElementById('step' + step).style.display = 'block';
+        currentStep = step;
+        
+        // Update step indicators
+        for (let i = 1; i <= totalSteps; i++) {
+            const indicator = document.querySelector(`#step${i}-indicator > div`);
+            if (i <= step) {
+                indicator.style.background = 'var(--primary)';
+                indicator.style.color = 'white';
+            } else {
+                indicator.style.background = '#ddd';
+                indicator.style.color = '#666';
+            }
+        }
+        
+        // Update buttons
+        document.getElementById('prevBtn').style.display = step > 1 ? 'block' : 'none';
+        document.getElementById('nextBtn').style.display = step < totalSteps ? 'block' : 'none';
+        document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
+    }
+    
+    function validateStep(step) {
+        if (step === 1) {
+            const email = document.querySelector('[name="email"]').value;
+            const phone = document.querySelector('[name="phone"]').value;
+            const username = document.querySelector('[name="username"]').value;
+            const password1 = document.querySelector('[name="password1"]').value;
+            const password2 = document.querySelector('[name="password2"]').value;
+            const terms = document.querySelector('[name="terms"]').checked;
+            
+            if (!email || !phone || !username || !password1 || !password2) {
+                alert('Please fill in all required fields');
+                return false;
+            }
+            
+            if (password1 !== password2) {
+                alert('Passwords do not match');
+                return false;
+            }
+            
+            if (!terms) {
+                alert('Please accept the Terms & Conditions');
+                return false;
+            }
+            
+            return true;
+        }
+        return true;
+    }
+    
+    function startOTPTimer() {
+        let timeLeft = 300; // 5 minutes
+        const countdownEl = document.getElementById('countdown');
+        
+        const timer = setInterval(function() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownEl.textContent = 'Expired';
+                alert('OTP has expired. Please click "Resend OTP"');
+            }
+            
+            timeLeft--;
+        }, 1000);
+    }
+    
+    document.getElementById('resendOTP').addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('New OTP sent! (In production, this would send a real OTP)');
+        startOTPTimer();
+    });
+    
+    // Auto-submit OTP when 6 digits entered
+    document.querySelector('[name="otp_code"]').addEventListener('input', function(e) {
+        if (e.target.value.length === 6) {
+            // Auto-verify after 1 second
+            setTimeout(() => {
+                if (e.target.value.length === 6) {
+                    document.getElementById('nextBtn').click();
+                }
+            }, 1000);
+        }
+    });
+</script>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+</style>
+{% endblock %}

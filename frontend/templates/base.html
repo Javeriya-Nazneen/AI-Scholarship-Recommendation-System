@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="AI-Scholar - Smart Path to Your Perfect Scholarship">
+    <meta name="keywords" content="scholarship, AI, recommendation, student, education">
+    <title>{% block title %}AI-Scholar - Smart Scholarship Finder{% endblock %}</title>
+    
+    <!-- Stylesheets -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo -->
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>AI-Scholar</span>
+            </a>
+            
+            <!-- Search Bar (Center) -->
+            <div class="header-search-wrapper">
+                <div class="header-search-container">
+                    <button type="button" id="headerVoiceSearchBtn" class="header-voice-btn-left" title="Voice Search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <input type="text" 
+                           class="header-search-bar" 
+                           id="headerScholarshipSearch" 
+                           placeholder="Search by major, country, or scholarship name...">
+                    <button class="header-search-btn" onclick="searchScholarships()">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+                <div id="headerVoiceSearchStatus" class="header-voice-status"></div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <ul class="nav-menu">
+                <li><a href="{% url 'scholarships' %}"><i class="fas fa-search"></i> Scholarships</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'dashboard' %}"><i class="fas fa-dashboard"></i> Dashboard</a></li>
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin_dashboard' %}"><i class="fas fa-cog"></i> Admin</a></li>
+                    {% endif %}
+                    <li class="profile-dropdown">
+                        <a href="#" class="profile-link">
+                            <i class="fas fa-user-circle"></i> 
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'profile' %}"><i class="fas fa-user"></i> My Profile</a></li>
+                            <li><a href="{% url 'dashboard' %}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" class="btn btn-secondary">Login</a></li>
+                    <li><a href="{% url 'register' %}" class="btn btn-primary">Register</a></li>
+                {% endif %}
+            </ul>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} fade-in">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <h4><i class="fas fa-graduation-cap"></i> AI-Scholar</h4>
+                <p>Smart Path to Your Perfect Scholarship</p>
+                <p>&copy; 2025 AI-Scholar. All rights reserved.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'scholarships' %}">Browse Scholarships</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#">How It Works</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Success Stories</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
+                    <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                    <li><a href="#"><i class="fab fa-linkedin"></i> LinkedIn</a></li>
+                    <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Chatbot Widget -->
+    <div id="chatbot-widget">
+        <!-- Chatbot Button -->
+        <button id="chatbot-toggle" class="chatbot-toggle" title="AI Scholarship Assistant">
+            <i class="fas fa-comments"></i>
+            <span class="chatbot-badge">AI</span>
+        </button>
+
+        <!-- Chatbot Window -->
+        <div id="chatbot-window" class="chatbot-window">
+            <div class="chatbot-header">
+                <div class="chatbot-header-content">
+                    <div class="chatbot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h4>💬 AI Scholarship Assistant</h4>
+                        <span class="chatbot-status">
+                            <span class="status-dot"></span> Online
+                        </span>
+                    </div>
+                </div>
+                <button id="chatbot-close" class="chatbot-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="chatbot-message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>👋 Hi! I'm your AI Scholarship Assistant. How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chatbot-quick-replies">
+                <button class="quick-reply-btn" onclick="sendQuickReply('What scholarships am I eligible for?')">
+                    🎓 Eligibility
+                </button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('When are the deadlines?')">
+                    ⏰ Deadlines
+                </button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('How do I apply?')">
+                    📝 Apply
+                </button>
+            </div>
+
+            <div class="chatbot-input-area">
+                <input type="text" 
+                       id="chatbot-input" 
+                       class="chatbot-input" 
+                       placeholder="Type your message..."
+                       onkeypress="handleChatbotKeyPress(event)">
+                <button class="chatbot-send-btn" onclick="sendChatbotMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'main.js' %}"></script>
+    
+    <!-- Global Voice Search Script -->
+    <script>
+        // Global Voice Search for Header
+        (function() {
+            // Check if browser supports Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Web Speech API is not supported in this browser.');
+                const voiceBtn = document.getElementById('headerVoiceSearchBtn');
+                if (voiceBtn) {
+                    voiceBtn.style.display = 'none';
+                }
+                return;
+            }
+
+            // Initialize Speech Recognition
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-IN'; // English (India)
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            let isListening = false;
+            
+            const voiceBtn = document.getElementById('headerVoiceSearchBtn');
+            const searchInput = document.getElementById('headerScholarshipSearch');
+            const statusDiv = document.getElementById('headerVoiceSearchStatus');
+
+            if (!voiceBtn || !searchInput || !statusDiv) {
+                return;
+            }
+
+            // Show status message
+            function showStatus(message, type = 'info') {
+                statusDiv.textContent = message;
+                statusDiv.className = 'header-voice-status active ' + type;
+                
+                if (type === 'success' || type === 'error') {
+                    setTimeout(() => {
+                        statusDiv.className = 'header-voice-status';
+                    }, 3000);
+                }
+            }
+
+            // Hide status message
+            function hideStatus() {
+                statusDiv.className = 'header-voice-status';
+            }
+
+            // Start listening
+            function startListening() {
+                try {
+                    isListening = true;
+                    voiceBtn.classList.add('listening');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                    showStatus('🎤 Listening... Speak now!', 'listening');
+                    recognition.start();
+                } catch (error) {
+                    console.error('Error starting recognition:', error);
+                    showStatus('❌ Error starting microphone', 'error');
+                    resetButton();
+                }
+            }
+
+            // Stop listening
+            function stopListening() {
+                try {
+                    recognition.stop();
+                } catch (error) {
+                    console.error('Error stopping recognition:', error);
+                }
+                resetButton();
+            }
+
+            // Reset button state
+            function resetButton() {
+                isListening = false;
+                voiceBtn.classList.remove('listening');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            }
+
+            // Voice button click handler
+            voiceBtn.addEventListener('click', function() {
+                if (isListening) {
+                    stopListening();
+                    showStatus('Voice search cancelled', 'info');
+                    setTimeout(hideStatus, 2000);
+                } else {
+                    startListening();
+                }
+            });
+
+            // Handle interim and final results
+            recognition.addEventListener('result', function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (interimTranscript) {
+                    searchInput.value = interimTranscript;
+                    showStatus('🎤 Listening: ' + interimTranscript, 'listening');
+                }
+
+                if (finalTranscript) {
+                    searchInput.value = finalTranscript.trim();
+                    showStatus('✅ Got it: "' + finalTranscript.trim() + '"', 'success');
+                    resetButton();
+                }
+            });
+
+            // Handle speech recognition end
+            recognition.addEventListener('end', function() {
+                resetButton();
+                
+                if (searchInput.value.trim()) {
+                    setTimeout(() => {
+                        hideStatus();
+                    }, 2000);
+                } else {
+                    showStatus('No speech detected. Try again.', 'error');
+                }
+            });
+
+            // Handle errors
+            recognition.addEventListener('error', function(event) {
+                resetButton();
+                
+                let errorMessage = 'Error occurred';
+                
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage = '❌ No speech detected. Please try again.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = '❌ Microphone not found or not accessible.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = '❌ Microphone permission denied. Please enable it in browser settings.';
+                        break;
+                    case 'network':
+                        errorMessage = '❌ Network error. Check your internet connection.';
+                        break;
+                    case 'aborted':
+                        errorMessage = 'Voice search cancelled';
+                        break;
+                    default:
+                        errorMessage = '❌ Error: ' + event.error;
+                }
+                
+                showStatus(errorMessage, 'error');
+                console.error('Speech recognition error:', event.error);
+            });
+
+            // Keyboard shortcut (Ctrl+Shift+V)
+            document.addEventListener('keydown', function(event) {
+                if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'V') {
+                    event.preventDefault();
+                    if (!isListening) {
+                        startListening();
+                    }
+                }
+            });
+
+            // Show hint on first load
+            setTimeout(() => {
+                if (!localStorage.getItem('headerVoiceSearchHintShown')) {
+                    showStatus('💡 Tip: Click microphone or press Ctrl+Shift+V for voice search', 'info');
+                    localStorage.setItem('headerVoiceSearchHintShown', 'true');
+                    setTimeout(hideStatus, 5000);
+                }
+            }, 1000);
+        })();
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

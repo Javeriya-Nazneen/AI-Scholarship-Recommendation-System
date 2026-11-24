@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Chatbot - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-3">💬 AI Scholarship Assistant</h1>
+    
+    <div class="grid grid-2">
+        <!-- Chatbot Interface -->
+        <div class="card" style="grid-column: span 2; height: 600px; display: flex; flex-direction: column;">
+            <!-- Chat Header -->
+            <div style="padding: 1rem; border-bottom: 2px solid var(--border); background: var(--primary-color); color: white; border-radius: 12px 12px 0 0;">
+                <h3 style="margin: 0; color: white;"><i class="fas fa-robot"></i> AI Assistant</h3>
+                <p style="margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.9);">Ask me anything about scholarships!</p>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chatMessages" style="flex: 1; overflow-y: auto; padding: 1.5rem; background: #f5f5f5;">
+                <!-- Welcome Message -->
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p><strong>AI Assistant</strong></p>
+                        <p>Hello! I'm your AI scholarship assistant. I can help you with:</p>
+                        <ul>
+                            <li>Finding scholarships based on your profile</li>
+                            <li>Eligibility requirements</li>
+                            <li>Application deadlines</li>
+                            <li>General scholarship questions</li>
+                        </ul>
+                        <p>How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div style="padding: 1rem; border-top: 2px solid var(--border);">
+                <div class="flex gap-2">
+                    <input type="text" 
+                           id="chatInput" 
+                           class="form-control" 
+                           placeholder="Type your question here..."
+                           onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Questions -->
+        <div class="card">
+            <h3 class="mb-2">❓ Quick Questions</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="btn btn-outline" onclick="askQuestion('What scholarships am I eligible for?')">
+                    What scholarships am I eligible for?
+                </button>
+                <button class="btn btn-outline" onclick="askQuestion('What are the deadlines for merit scholarships?')">
+                    Merit scholarship deadlines?
+                </button>
+                <button class="btn btn-outline" onclick="askQuestion('How do I improve my application?')">
+                    How to improve my application?
+                </button>
+                <button class="btn btn-outline" onclick="askQuestion('What documents do I need?')">
+                    What documents do I need?
+                </button>
+                <button class="btn btn-outline" onclick="askQuestion('Can I apply to multiple scholarships?')">
+                    Apply to multiple scholarships?
+                </button>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card">
+            <h3 class="mb-2">💡 Tips</h3>
+            <ul>
+                <li>Be specific with your questions</li>
+                <li>Mention your field of study for better results</li>
+                <li>Ask about eligibility criteria</li>
+                <li>Inquire about deadlines</li>
+                <li>Get help with application process</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-message {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.3s;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.message-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    flex: 1;
+}
+
+.bot-message .message-content {
+    background: white;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.user-message .message-content {
+    background: var(--primary-color);
+    color: white;
+}
+
+.user-message .message-avatar {
+    background: var(--primary-color);
+    color: white;
+}
+
+.bot-message .message-avatar {
+    background: var(--success);
+    color: white;
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.5rem;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--light-text);
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-10px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'chatbot.js' %}"></script>
+<script>
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message
+    addMessage(message, 'user');
+    input.value = '';
+    
+    // Show typing indicator
+    showTyping();
+    
+    // Send to backend
+    fetch('/api/chatbot/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTyping();
+        addMessage(data.response, 'bot');
+    })
+    .catch(error => {
+        hideTyping();
+        addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+    });
+}
+
+function addMessage(text, sender) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}-message`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = sender === 'user' ? '👤' : '🤖';
+    
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.innerHTML = `<p><strong>${sender === 'user' ? 'You' : 'AI Assistant'}</strong></p><p>${text}</p>`;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(content);
+    messagesDiv.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function showTyping() {
+    const messagesDiv = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typingIndicator';
+    typingDiv.className = 'chat-message bot-message';
+    typingDiv.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    `;
+    messagesDiv.appendChild(typingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function hideTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+}
+
+function askQuestion(question) {
+    document.getElementById('chatInput').value = question;
+    sendMessage();
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

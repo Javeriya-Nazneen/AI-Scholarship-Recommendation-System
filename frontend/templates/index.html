@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}AI-Scholar - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-badge fade-in">
+            ✨ AI-Powered • 100% Free • Trusted by 10,000+ Students
+        </div>
+        <h1 class="fade-in">🎓 Find Your Perfect Scholarship</h1>
+        <p class="fade-in">AI-powered recommendations tailored to your profile, goals, and dreams.<br>
+        Discover scholarships worth millions of dollars in seconds.</p>
+        
+        <!-- Search Bar -->
+        <div class="search-container fade-in">
+            <input type="text" 
+                   class="search-bar" 
+                   id="scholarshipSearch" 
+                   placeholder="🔍 Search by major, country, or scholarship name...">
+            <button class="search-btn" onclick="searchScholarships()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+
+        <div class="flex-center gap-2 mt-3 fade-in">
+            {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i> Get Started Free
+                </a>
+                <a href="#how-it-works" class="btn btn-outline">
+                    <i class="fas fa-play-circle"></i> Learn More
+                </a>
+            {% else %}
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-th-large"></i> Go to Dashboard
+                </a>
+                <a href="{% url 'scholarships' %}" class="btn btn-outline">
+                    <i class="fas fa-search"></i> Browse All
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Trust Badges -->
+        <div class="trust-badges fade-in" style="margin-top: 3rem;">
+            <div class="trust-badge">
+                <i class="fas fa-shield-check"></i>
+                <span>Verified Scholarships</span>
+            </div>
+            <div class="trust-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secure & Private</span>
+            </div>
+            <div class="trust-badge">
+                <i class="fas fa-bolt"></i>
+                <span>Instant Matching</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="container">
+    <div class="grid grid-4 text-center">
+        <div class="card stats-card fade-in" style="--delay: 0.1s">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h2 style="color: #667eea;">5,000+</h2>
+            <p><strong>Scholarships Available</strong></p>
+            <small>Updated Daily</small>
+        </div>
+        <div class="card stats-card fade-in" style="--delay: 0.2s">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2 style="color: #11998e;">10,000+</h2>
+            <p><strong>Students Helped</strong></p>
+            <small>And Growing</small>
+        </div>
+        <div class="card stats-card fade-in" style="--delay: 0.3s">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <h2 style="color: #f093fb;">₹500 Cr+</h2>
+            <p><strong>Scholarships Awarded</strong></p>
+            <small>Total Value</small>
+        </div>
+        <div class="card stats-card fade-in" style="--delay: 0.4s">
+            <div class="stats-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h2 style="color: #fa709a;">98%</h2>
+            <p><strong>Success Rate</strong></p>
+            <small>Application Approval</small>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Scholarships -->
+<section class="container">
+    <h2 class="text-center mb-3">🌟 Featured Scholarships</h2>
+    <div class="grid grid-3">
+        {% for scholarship in featured_scholarships %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ scholarship.title }}</h3>
+                <span class="badge badge-primary">{{ scholarship.type }}</span>
+                {% if scholarship.deadline and scholarship.deadline < today %}
+                    <span class="badge bg-secondary">Deadline Passed</span>
+                {% else %}
+                    <span class="badge bg-success">Applications Open</span>
+                {% endif %}
+            </div>
+            <p class="card-text">{{ scholarship.description|truncatewords:20 }}</p>
+            <div class="flex-between mb-2">
+                <span><i class="fas fa-rupee-sign"></i> {{ scholarship.amount|inr }}</span>
+                <span><i class="fas fa-calendar"></i> {{ scholarship.deadline }}</span>
+            </div>
+            <div class="flex-between">
+                <span><i class="fas fa-map-marker-alt"></i> {{ scholarship.country }}</span>
+                <a href="{% url 'scholarship_detail' scholarship.id %}" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card">
+            <p class="text-center">No scholarships available yet. Check back soon!</p>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+        <a href="{% url 'scholarships' %}" class="btn btn-primary">View All Scholarships</a>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="container" id="how-it-works">
+    <h2 class="text-center mb-3">🚀 How AI-Scholar Works</h2>
+    <div class="grid grid-3">
+        <div class="card text-center">
+            <div style="font-size: 3rem; color: var(--primary-color);">1️⃣</div>
+            <h3>Create Profile</h3>
+            <p>Tell us about your background, achievements, and goals</p>
+        </div>
+        <div class="card text-center">
+            <div style="font-size: 3rem; color: var(--success);">2️⃣</div>
+            <h3>Get AI Recommendations</h3>
+            <p>Our AI analyzes thousands of scholarships to find your perfect matches</p>
+        </div>
+        <div class="card text-center">
+            <div style="font-size: 3rem; color: var(--accent-color);">3️⃣</div>
+            <h3>Apply & Win</h3>
+            <p>Apply directly through our platform and track your application status</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="container">
+    <h2 class="text-center mb-3">✨ Why Choose AI-Scholar?</h2>
+    <div class="grid grid-2">
+        <div class="card">
+            <h3><i class="fas fa-robot" style="color: var(--primary-color);"></i> AI-Powered Matching</h3>
+            <p>Advanced machine learning algorithms analyze your profile and recommend scholarships with the highest match score.</p>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-comments" style="color: var(--success);"></i> 24/7 AI Assistant</h3>
+            <p>Get instant answers to your questions about eligibility, deadlines, and application process through our chatbot.</p>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-chart-line" style="color: var(--accent-color);"></i> Real-time Tracking</h3>
+            <p>Monitor your application status, deadlines, and notifications all in one place.</p>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-shield-alt" style="color: var(--warning);"></i> Secure & Private</h3>
+            <p>Your data is encrypted and secure. We never share your information without permission.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="hero" style="padding: 3rem 2rem;">
+    <div class="container text-center">
+        <h2>Ready to Find Your Perfect Scholarship?</h2>
+        <p>Join thousands of students who have already found their dream scholarships</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn btn-primary">Sign Up Now - It's Free!</a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Your Dashboard</a>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Home page search uses the global searchScholarships() function from main.js
+// We just need to handle the different input ID
+document.addEventListener('DOMContentLoaded', function() {
+    const homeSearchInput = document.getElementById('scholarshipSearch');
+    if (homeSearchInput) {
+        // Override the search function for home page to use correct input ID
+        window.homeSearchScholarships = function() {
+            const query = homeSearchInput.value.trim();
+            console.log('Home search triggered with query:', query);
+            if (query) {
+                window.location.href = `/scholarships/?search=${encodeURIComponent(query)}`;
+            } else {
+                window.location.href = '/scholarships/';
+            }
+        };
+        
+        // Enter key support
+        homeSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.homeSearchScholarships();
+            }
+        });
+    }
+});
+
+// Make the button work
+function searchScholarships() {
+    if (window.homeSearchScholarships) {
+        window.homeSearchScholarships();
+    } else {
+        // Fallback to header search if main.js loaded
+        const query = document.getElementById('scholarshipSearch').value.trim();
+        if (query) {
+            window.location.href = `/scholarships/?search=${encodeURIComponent(query)}`;
+        } else {
+            window.location.href = '/scholarships/';
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Scholarship - AI-Scholar{% endblock %}
+
+{% block extra_css %}
+<style>
+.add-scholarship-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 0;
+}
+
+.form-header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.form-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+.scholarship-form {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+}
+
+.form-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group label .required {
+    color: #e74c3c;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-scholarship-container">
+    <div class="form-header">
+        <h1><i class="fas fa-edit"></i> Edit Scholarship</h1>
+        <p>Update scholarship information and requirements</p>
+    </div>
+
+    <form method="POST" class="scholarship-form">
+        {% csrf_token %}
+
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h2><i class="fas fa-info-circle"></i> Basic Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Title <span class="required">*</span></label>
+                    <input type="text" name="title" class="form-control" value="{{ scholarship.title }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Provider <span class="required">*</span></label>
+                    <input type="text" name="provider" class="form-control" value="{{ scholarship.provider }}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description <span class="required">*</span></label>
+                <textarea name="description" class="form-control" required>{{ scholarship.description }}</textarea>
+            </div>
+        </div>
+
+        <!-- Financial Details -->
+        <div class="form-section">
+            <h2><i class="fas fa-money-bill-wave"></i> Financial Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Amount (₹) <span class="required">*</span></label>
+                    <input type="number" name="amount" class="form-control" step="0.01" value="{{ scholarship.amount }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Max Family Income (₹)</label>
+                    <input type="number" name="max_income" class="form-control" step="0.01" value="{{ scholarship.max_income }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification -->
+        <div class="form-section">
+            <h2><i class="fas fa-tags"></i> Classification</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Scholarship Type <span class="required">*</span></label>
+                    <select name="scholarship_type" class="form-control" required>
+                        <option value="">Select Type</option>
+                        <option value="merit" {% if scholarship.scholarship_type == 'merit' %}selected{% endif %}>Merit-Based</option>
+                        <option value="need" {% if scholarship.scholarship_type == 'need' %}selected{% endif %}>Need-Based</option>
+                        <option value="sports" {% if scholarship.scholarship_type == 'sports' %}selected{% endif %}>Sports</option>
+                        <option value="arts" {% if scholarship.scholarship_type == 'arts' %}selected{% endif %}>Arts</option>
+                        <option value="minority" {% if scholarship.scholarship_type == 'minority' %}selected{% endif %}>Minority</option>
+                        <option value="other" {% if scholarship.scholarship_type == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Provider Type</label>
+                    <select name="provider_type" class="form-control">
+                        <option value="">Select Provider Type</option>
+                        <option value="government" {% if scholarship.provider_type == 'government' %}selected{% endif %}>Government</option>
+                        <option value="private" {% if scholarship.provider_type == 'private' %}selected{% endif %}>Private/NGO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" class="form-control">
+                        <option value="">Select Category</option>
+                        <option value="SC" {% if scholarship.category == 'SC' %}selected{% endif %}>SC</option>
+                        <option value="ST" {% if scholarship.category == 'ST' %}selected{% endif %}>ST</option>
+                        <option value="OBC" {% if scholarship.category == 'OBC' %}selected{% endif %}>OBC</option>
+                        <option value="MINORITY" {% if scholarship.category == 'MINORITY' %}selected{% endif %}>MINORITY</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-section">
+            <h2><i class="fas fa-map-marker-alt"></i> Location</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Country <span class="required">*</span></label>
+                    <input type="text" name="country" class="form-control" value="{{ scholarship.country }}" required>
+                </div>
+                <div class="form-group">
+                    <label>State/Region</label>
+                    <input type="text" name="state" class="form-control" value="{{ scholarship.state }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Eligibility Criteria -->
+        <div class="form-section">
+            <h2><i class="fas fa-user-check"></i> Eligibility Criteria</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Degree Level <span class="required">*</span></label>
+                    <select name="degree" class="form-control" required>
+                        <option value="">Select Degree</option>
+                        <option value="high_school" {% if scholarship.degree == 'high_school' %}selected{% endif %}>High School</option>
+                        <option value="bachelors" {% if scholarship.degree == 'bachelors' %}selected{% endif %}>Bachelor's</option>
+                        <option value="masters" {% if scholarship.degree == 'masters' %}selected{% endif %}>Master's</option>
+                        <option value="phd" {% if scholarship.degree == 'phd' %}selected{% endif %}>PhD</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Course/Field</label>
+                    <input type="text" name="course" class="form-control" value="{{ scholarship.course }}">
+                </div>
+                <div class="form-group">
+                    <label>Minimum GPA</label>
+                    <input type="number" name="min_gpa" class="form-control" step="0.01" min="0" max="10" value="{{ scholarship.min_gpa }}">
+                </div>
+                <div class="form-group">
+                    <label>Gender Requirement</label>
+                    <select name="gender" class="form-control">
+                        <option value="">Any Gender</option>
+                        <option value="male" {% if scholarship.gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if scholarship.gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="other" {% if scholarship.gender == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Requirements -->
+        <div class="form-section">
+            <h2><i class="fas fa-clipboard-list"></i> Additional Requirements</h2>
+            <div class="form-group">
+                <label>Eligibility Criteria</label>
+                <textarea name="eligibility_criteria" class="form-control">{{ scholarship.eligibility_criteria }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Required Documents</label>
+                <textarea name="required_documents" class="form-control">{{ scholarship.required_documents }}</textarea>
+            </div>
+        </div>
+
+        <!-- Important Dates -->
+        <div class="form-section">
+            <h2><i class="fas fa-calendar"></i> Important Dates</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Deadline <span class="required">*</span></label>
+                    <input type="date" name="deadline" class="form-control" value="{{ scholarship.deadline|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Link -->
+        <div class="form-section">
+            <h2><i class="fas fa-link"></i> Application Link</h2>
+            <div class="form-group">
+                <label>Application URL</label>
+                <input type="url" name="application_link" class="form-control" value="{{ scholarship.application_link }}" placeholder="https://example.com/apply">
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{% url 'manage_scholarships' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

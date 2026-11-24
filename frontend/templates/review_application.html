@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Application - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="admin-container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h1 style="margin: 0; font-size: 2rem;"><i class="fas fa-file-alt"></i> Review Application</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Review and update application status</p>
+    </div>
+
+    <div class="card">
+        <h2><i class="fas fa-info-circle"></i> Application Details</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
+            <div>
+                <strong>Student:</strong> {{ application.student.username }}
+            </div>
+            <div>
+                <strong>Email:</strong> {{ application.student.email }}
+            </div>
+            <div>
+                <strong>Applied Date:</strong> {{ application.applied_date|date:"M d, Y H:i" }}
+            </div>
+            <div>
+                <strong>Current Status:</strong>
+                <span class="badge {{ application.status }}" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; margin-left: 0.5rem;">
+                    {{ application.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <div style="margin: 1.5rem 0; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+            <h3><i class="fas fa-graduation-cap"></i> Scholarship Details</h3>
+            <p><strong>{{ application.scholarship.title }}</strong></p>
+            <p>Provider: {{ application.scholarship.provider }}</p>
+            <p>Amount: ₹{{ application.scholarship.amount|floatformat:0 }}</p>
+        </div>
+
+        {% if application.application_text %}
+        <div style="margin: 1.5rem 0;">
+            <h3><i class="fas fa-comment"></i> Application Statement</h3>
+            <p style="white-space: pre-line; background: #f8f9fa; padding: 1rem; border-radius: 8px;">{{ application.application_text }}</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0;">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    <i class="fas fa-tasks"></i> Update Status
+                </label>
+                <select name="status" class="form-select" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <option value="submitted" {% if application.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="under_review" {% if application.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                    <option value="approved" {% if application.status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                    <i class="fas fa-sticky-note"></i> Reviewer Notes
+                </label>
+                <textarea name="reviewer_notes" class="form-control" rows="5" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px;" placeholder="Add your review notes here...">{{ application.reviewer_notes }}</textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="{% url 'manage_applications' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.badge.submitted { background: #fff3cd; color: #856404; }
+.badge.approved { background: #d4edda; color: #155724; }
+.badge.rejected { background: #f8d7da; color: #721c24; }
+.badge.under_review { background: #d1ecf1; color: #0c5460; }
+</style>
+{% endblock %}

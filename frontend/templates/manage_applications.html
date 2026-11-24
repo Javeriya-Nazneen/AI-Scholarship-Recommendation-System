@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Applications - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="admin-container" style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h1 style="margin: 0; font-size: 2rem;"><i class="fas fa-file-alt"></i> Manage Applications</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Review and manage all scholarship applications</p>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2><i class="fas fa-inbox"></i> All Applications ({{ applications.count }})</h2>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="admin-table" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 1000px;">
+                <thead style="background: var(--primary-color); color: white;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left;">Student</th>
+                        <th style="padding: 1rem; text-align: left;">Email</th>
+                        <th style="padding: 1rem; text-align: left;">Scholarship</th>
+                        <th style="padding: 1rem; text-align: left;">Applied Date</th>
+                        <th style="padding: 1rem; text-align: left;">Status</th>
+                        <th style="padding: 1rem; text-align: left;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 1rem;">{{ application.student.username }}</td>
+                        <td style="padding: 1rem;">{{ application.student.email }}</td>
+                        <td style="padding: 1rem;">{{ application.scholarship.title|truncatewords:10 }}</td>
+                        <td style="padding: 1rem;">{{ application.applied_date|date:"M d, Y" }}</td>
+                        <td style="padding: 1rem;">
+                            <span class="badge {{ application.status }}" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
+                                {{ application.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <a href="{% url 'review_application' application.id %}" class="btn btn-sm btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #999;">
+                            No applications found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge.submitted {
+    background: #fff3cd;
+    color: #856404;
+}
+.badge.approved {
+    background: #d4edda;
+    color: #155724;
+}
+.badge.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+.badge.under_review {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+</style>
+{% endblock %}

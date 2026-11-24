@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="grid grid-2" style="align-items: center; min-height: 60vh;">
+        <div>
+            <h1>🎓 Welcome Back!</h1>
+            <p>Log in to access your personalized scholarship recommendations</p>
+            <ul style="margin-top: 2rem;">
+                <li>✨ AI-powered scholarship matching</li>
+                <li>📊 Track your applications</li>
+                <li>💬 24/7 AI assistant support</li>
+                <li>⏰ Deadline reminders</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <h2 class="mb-3">Login to Your Account</h2>
+            
+            <!-- Login Method Tabs -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #e0e0e0;">
+                <button type="button" class="tab-btn active" onclick="showLoginMethod('password')" id="passwordTab">
+                    <i class="fas fa-lock"></i> Password
+                </button>
+                <button type="button" class="tab-btn" onclick="showLoginMethod('otp')" id="otpTab">
+                    <i class="fas fa-mobile-alt"></i> OTP
+                </button>
+            </div>
+            
+            <!-- Password Login Form -->
+            <form method="POST" id="passwordLogin">
+                {% csrf_token %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" style="margin-bottom: 1rem; padding: 1rem; border-radius: 8px; background: {% if message.tags == 'error' %}#fee{% else %}#efe{% endif %};">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Username or Email
+                    </label>
+                    {{ form.username }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    {{ form.password }}
+                    <div style="text-align: right; margin-top: 0.5rem;">
+                        <a href="#" style="color: var(--primary); font-size: 0.9rem;">Forgot Password?</a>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="remember_me" style="margin-right: 10px;">
+                        <span>Remember me for 30 days</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Login with Password
+                </button>
+            </form>
+            
+            <!-- OTP Login Form -->
+            <div id="otpLogin" style="display: none;">
+                <div id="otpRequestForm">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-envelope"></i> Email or Phone Number
+                        </label>
+                        <input type="text" id="otpIdentifier" class="form-control" placeholder="Enter email or phone number">
+                        <small style="color: #666;">We'll send you a 6-digit OTP</small>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="requestOTP()" style="width: 100%;">
+                        <i class="fas fa-paper-plane"></i> Send OTP
+                    </button>
+                </div>
+                
+                <div id="otpVerifyForm" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h3>Enter OTP</h3>
+                        <p id="otpSentTo" style="color: #666;">OTP sent to your email/phone</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-key"></i> 6-Digit OTP Code
+                        </label>
+                        <input type="text" id="otpCode" class="form-control" placeholder="Enter OTP" maxlength="6" pattern="[0-9]{6}" style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;">
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <p>Didn't receive OTP? <a href="#" onclick="requestOTP(); return false;" style="color: var(--primary);">Resend OTP</a></p>
+                        <p style="color: #666;">Expires in: <span id="otpCountdown">05:00</span></p>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="verifyOTP()" style="width: 100%;">
+                        <i class="fas fa-check"></i> Verify & Login
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline" onclick="showOTPRequestForm()" style="width: 100%; margin-top: 1rem;">
+                        <i class="fas fa-arrow-left"></i> Change Email/Phone
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Social Login (Optional) -->
+            <div style="margin-top: 2rem;">
+                <div style="text-align: center; margin-bottom: 1rem; color: #666;">
+                    <span style="background: white; padding: 0 1rem; position: relative; z-index: 1;">Or continue with</span>
+                    <hr style="margin-top: -12px; border: 1px solid #e0e0e0;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <button type="button" class="btn btn-outline" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fab fa-google" style="color: #DB4437;"></i> Google
+                    </button>
+                    <button type="button" class="btn btn-outline" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fab fa-facebook" style="color: #1877F2;"></i> Facebook
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-center mt-3">
+                Don't have an account? <a href="{% url 'register' %}">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let otpTimer;
+    
+    function showLoginMethod(method) {
+        const passwordForm = document.getElementById('passwordLogin');
+        const otpForm = document.getElementById('otpLogin');
+        const passwordTab = document.getElementById('passwordTab');
+        const otpTab = document.getElementById('otpTab');
+        
+        if (method === 'password') {
+            passwordForm.style.display = 'block';
+            otpForm.style.display = 'none';
+            passwordTab.classList.add('active');
+            otpTab.classList.remove('active');
+        } else {
+            passwordForm.style.display = 'none';
+            otpForm.style.display = 'block';
+            passwordTab.classList.remove('active');
+            otpTab.classList.add('active');
+            showOTPRequestForm();
+        }
+    }
+    
+    function showOTPRequestForm() {
+        document.getElementById('otpRequestForm').style.display = 'block';
+        document.getElementById('otpVerifyForm').style.display = 'none';
+        if (otpTimer) clearInterval(otpTimer);
+    }
+    
+    function requestOTP() {
+        const identifier = document.getElementById('otpIdentifier').value;
+        
+        if (!identifier) {
+            alert('Please enter your email or phone number');
+            return;
+        }
+        
+        // In production, make API call to send OTP
+        // For now, simulate OTP sending
+        console.log('Sending OTP to:', identifier);
+        
+        // Show success message
+        document.getElementById('otpSentTo').textContent = `OTP sent to ${identifier}`;
+        
+        // Show verify form
+        document.getElementById('otpRequestForm').style.display = 'none';
+        document.getElementById('otpVerifyForm').style.display = 'block';
+        
+        // Start timer
+        startOTPTimer();
+        
+        // In production, remove this - just for demo
+        alert(`OTP sent to ${identifier}! (In production, a real OTP would be sent)\n\nFor demo: Use any 6-digit code`);
+    }
+    
+    function verifyOTP() {
+        const otpCode = document.getElementById('otpCode').value;
+        
+        if (!otpCode || otpCode.length !== 6) {
+            alert('Please enter a valid 6-digit OTP');
+            return;
+        }
+        
+        // In production, make API call to verify OTP
+        // For now, simulate verification
+        console.log('Verifying OTP:', otpCode);
+        
+        // In production, this would verify with backend and login
+        alert('OTP verified! In production, you would be logged in now.');
+        
+        // For demo, show success message
+        // In production, redirect to dashboard
+        // window.location.href = '/dashboard/';
+    }
+    
+    function startOTPTimer() {
+        let timeLeft = 300; // 5 minutes
+        const countdownEl = document.getElementById('otpCountdown');
+        
+        if (otpTimer) clearInterval(otpTimer);
+        
+        otpTimer = setInterval(function() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(otpTimer);
+                countdownEl.textContent = 'Expired';
+                alert('OTP has expired. Please request a new one.');
+            }
+            
+            timeLeft--;
+        }, 1000);
+    }
+    
+    // Auto-submit OTP when 6 digits entered
+    document.addEventListener('DOMContentLoaded', function() {
+        const otpInput = document.getElementById('otpCode');
+        if (otpInput) {
+            otpInput.addEventListener('input', function(e) {
+                if (e.target.value.length === 6) {
+                    setTimeout(() => {
+                        if (e.target.value.length === 6) {
+                            verifyOTP();
+                        }
+                    }, 500);
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .tab-btn {
+        flex: 1;
+        padding: 1rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: 600;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+    }
+    
+    .tab-btn:hover {
+        color: var(--primary);
+    }
+    
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+</style>
+{% endblock %}

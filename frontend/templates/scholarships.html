@@ -1,0 +1,1053 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Browse Scholarships - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="scholarships-container">
+    <!-- Left Sidebar - Advanced Filters -->
+    <aside class="filter-sidebar" id="filterSidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-sliders-h"></i> Advanced Filters</h3>
+            <button class="mobile-close-btn" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="GET" action="{% url 'scholarships' %}" id="advancedFilterForm">
+            <!-- Search is in top bar, but include hidden for form submission -->
+            <input type="hidden" name="search" value="{{ current_search }}">
+            
+            <!-- Type of Scholarship -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-award"></i> Type of Scholarship
+                </h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="" {% if not current_type %}checked{% endif %}>
+                        <span>All Types</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="merit" {% if current_type == 'merit' %}checked{% endif %}>
+                        <span>Merit-Based</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="need" {% if current_type == 'need' %}checked{% endif %}>
+                        <span>Need-Based</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="sports" {% if current_type == 'sports' %}checked{% endif %}>
+                        <span>Sports</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="academic" {% if current_type == 'academic' %}checked{% endif %}>
+                        <span>Academic Excellence</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="minority" {% if current_type == 'minority' %}checked{% endif %}>
+                        <span>Category-Based</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="women" {% if current_type == 'women' %}checked{% endif %}>
+                        <span>Women in STEM</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="type" value="research" {% if current_type == 'research' %}checked{% endif %}>
+                        <span>Research/Subject-Specific</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Provider Type -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-building"></i> Provider Type
+                </h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="provider_type" value="" {% if not current_provider_type %}checked{% endif %}>
+                        <span>All Providers</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="provider_type" value="government" {% if current_provider_type == 'government' %}checked{% endif %}>
+                        <span>Government</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="provider_type" value="private" {% if current_provider_type == 'private' %}checked{% endif %}>
+                        <span>Private/Corporate</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Course/Stream -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-book"></i> Course/Stream
+                </h4>
+                <input type="text" name="course" class="filter-input" placeholder="e.g., Engineering, Medicine" value="{{ current_course }}">
+            </div>
+
+            <!-- Degree Level -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-graduation-cap"></i> Degree Level
+                </h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="degree_level" value="" {% if not current_degree %}checked{% endif %}>
+                        <span>All Levels</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="degree_level" value="HS" {% if current_degree == 'HS' %}checked{% endif %}>
+                        <span>High School</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="degree_level" value="UG" {% if current_degree == 'UG' %}checked{% endif %}>
+                        <span>Undergraduate</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="degree_level" value="PG" {% if current_degree == 'PG' %}checked{% endif %}>
+                        <span>Postgraduate</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="degree_level" value="PHD" {% if current_degree == 'PHD' %}checked{% endif %}>
+                        <span>PhD</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Location/Country -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-globe"></i> Location/Country
+                </h4>
+                <select name="country" class="filter-select">
+                    <option value="">All Countries</option>
+                    <option value="India" {% if current_country == 'India' %}selected{% endif %}>India</option>
+                    <option value="USA" {% if current_country == 'USA' %}selected{% endif %}>USA</option>
+                    <option value="UK" {% if current_country == 'UK' %}selected{% endif %}>UK</option>
+                    <option value="Canada" {% if current_country == 'Canada' %}selected{% endif %}>Canada</option>
+                    <option value="Australia" {% if current_country == 'Australia' %}selected{% endif %}>Australia</option>
+                    <option value="Germany" {% if current_country == 'Germany' %}selected{% endif %}>Germany</option>
+                    <option value="Singapore" {% if current_country == 'Singapore' %}selected{% endif %}>Singapore</option>
+                </select>
+            </div>
+
+            <!-- State (for India) -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-map-marker-alt"></i> State (India)
+                </h4>
+                <input type="text" name="state" class="filter-input" placeholder="e.g., Maharashtra, Delhi" value="{{ current_state }}">
+            </div>
+
+            <!-- Gender -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-venus-mars"></i> Gender
+                </h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="gender" value="" {% if not current_gender %}checked{% endif %}>
+                        <span>All Genders</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="gender" value="M" {% if current_gender == 'M' %}checked{% endif %}>
+                        <span>Male</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="gender" value="F" {% if current_gender == 'F' %}checked{% endif %}>
+                        <span>Female</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Caste Category -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-users"></i> Caste Category
+                </h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="radio" name="category" value="" {% if not current_category %}checked{% endif %}>
+                        <span>All Categories</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="category" value="SC" {% if current_category == 'SC' %}checked{% endif %}>
+                        <span>SC (Scheduled Caste)</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="category" value="ST" {% if current_category == 'ST' %}checked{% endif %}>
+                        <span>ST (Scheduled Tribe)</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="category" value="OBC" {% if current_category == 'OBC' %}checked{% endif %}>
+                        <span>OBC</span>
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="radio" name="category" value="MINORITY" {% if current_category == 'MINORITY' %}checked{% endif %}>
+                        <span>Minority</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Financial Criteria -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-rupee-sign"></i> Scholarship Amount
+                </h4>
+                <div class="filter-range">
+                    <input type="number" name="min_amount" class="filter-input" placeholder="Min Amount" value="{{ request.GET.min_amount }}">
+                    <span>to</span>
+                    <input type="number" name="max_amount" class="filter-input" placeholder="Max Amount" value="{{ request.GET.max_amount }}">
+                </div>
+            </div>
+
+            <!-- Income Limit -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-wallet"></i> Family Income Limit
+                </h4>
+                <input type="number" name="max_income" class="filter-input" placeholder="Your family income" value="{{ request.GET.max_income }}">
+                <small style="color: #666;">Shows scholarships you're eligible for</small>
+            </div>
+
+            <!-- Academic Criteria -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-chart-line"></i> Academic Criteria
+                </h4>
+                <input type="number" name="min_gpa" class="filter-input" placeholder="Your CGPA/GPA (e.g., 7.5)" step="0.1" value="{{ request.GET.min_gpa }}">
+                <small style="color: #666;">Shows scholarships you qualify for</small>
+            </div>
+
+            <!-- Age -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-birthday-cake"></i> Your Age
+                </h4>
+                <input type="number" name="age" class="filter-input" placeholder="Your age" value="{{ request.GET.age }}">
+            </div>
+
+            <!-- Sort -->
+            <div class="filter-section">
+                <h4 class="filter-title">
+                    <i class="fas fa-sort"></i> Sort By
+                </h4>
+                <select name="sort" class="filter-select">
+                    <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>Recently Added</option>
+                    <option value="deadline" {% if current_sort == 'deadline' %}selected{% endif %}>Deadline (Earliest)</option>
+                    <option value="amount_high" {% if current_sort == 'amount_high' %}selected{% endif %}>Amount (High to Low)</option>
+                    <option value="amount_low" {% if current_sort == 'amount_low' %}selected{% endif %}>Amount (Low to High)</option>
+                    <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                </select>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+                <a href="{% url 'scholarships' %}" class="btn btn-secondary btn-block">
+                    <i class="fas fa-redo"></i> Reset All
+                </a>
+            </div>
+        </form>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="scholarships-main">
+        <h1 class="page-title">🔍 Browse Scholarships</h1>
+        
+        <!-- Top Search Bar and Quick Filters (Existing) -->
+        <!-- Top Search Bar and Quick Filters (Existing) -->
+        <div class="top-search-bar">
+            <button class="mobile-filter-btn" onclick="toggleSidebar()">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+            
+            <form method="GET" action="{% url 'scholarships' %}" class="search-form-inline">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" id="voiceSearchInput" class="search-input" placeholder="Search scholarships..." value="{{ current_search }}">
+                    <button type="button" id="voiceSearchBtn" class="voice-search-btn" title="Voice Search">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button type="submit" class="search-btn">Search</button>
+                </div>
+                <div id="voiceSearchStatus" class="voice-search-status"></div>
+            </form>
+        </div>
+
+        <!-- Quick Filters Bar (Keep existing) -->
+        <div class="card mb-3">
+            <h3 class="mb-2">Quick Filters</h3>
+            <form method="GET" action="{% url 'scholarships' %}" id="filterForm">
+            <div class="grid grid-4">
+                <div class="form-group">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by keyword..." value="{{ request.GET.search }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="merit" {% if request.GET.type == 'merit' %}selected{% endif %}>Merit-Based</option>
+                        <option value="need" {% if request.GET.type == 'need' %}selected{% endif %}>Need-Based</option>
+                        <option value="sports" {% if request.GET.type == 'sports' %}selected{% endif %}>Sports</option>
+                        <option value="academic" {% if request.GET.type == 'academic' %}selected{% endif %}>Academic</option>
+                        <option value="minority" {% if request.GET.type == 'minority' %}selected{% endif %}>Minority</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select name="country" class="form-select">
+                        <option value="">All Countries</option>
+                        <option value="India" {% if request.GET.country == 'India' %}selected{% endif %}>India</option>
+                        <option value="USA" {% if request.GET.country == 'USA' %}selected{% endif %}>USA</option>
+                        <option value="UK" {% if request.GET.country == 'UK' %}selected{% endif %}>UK</option>
+                        <option value="Canada" {% if request.GET.country == 'Canada' %}selected{% endif %}>Canada</option>
+                        <option value="Australia" {% if request.GET.country == 'Australia' %}selected{% endif %}>Australia</option>
+                        <option value="Singapore" {% if request.GET.country == 'Singapore' %}selected{% endif %}>Singapore</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Min GPA</label>
+                    <input type="number" name="min_gpa" class="form-control" placeholder="3.0" step="0.1" value="{{ request.GET.min_gpa }}">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <a href="{% url 'scholarships' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+
+        <!-- Results Count -->
+        <div class="results-header">
+            <p class="results-count">
+                <strong>{{ total_count }}</strong> scholarships found
+                {% if current_search or current_type or current_country or current_course %}
+                <span class="active-filters-badge">Filters Active</span>
+                {% endif %}
+            </p>
+            <div>
+            <label>Sort by: </label>
+            <select id="sortSelect" onchange="sortScholarships()" class="form-select" style="width: auto; display: inline-block;">
+                <option value="deadline">Deadline</option>
+                <option value="amount">Amount (High to Low)</option>
+                <option value="match">Best Match</option>
+                <option value="recent">Recently Added</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Scholarship Cards -->
+    <div class="grid grid-2">
+        {% for scholarship in scholarships %}
+        <div class="card scholarship-card" data-deadline="{{ scholarship.deadline|date:'Y-m-d' }}" data-amount="{{ scholarship.amount }}">
+            <div class="flex-between mb-2">
+                <h3 class="card-title">{{ scholarship.title }}</h3>
+                {% if user.is_authenticated and scholarship.match_score %}
+                    <span class="badge badge-success">{{ scholarship.match_score }}% Match</span>
+                {% endif %}
+            </div>
+            
+            <p class="card-text">{{ scholarship.description|truncatewords:20 }}</p>
+            
+            <div class="mb-2">
+                <span class="badge badge-primary">{{ scholarship.type }}</span>
+                {% if scholarship.deadline and scholarship.deadline < today %}
+                    <span class="badge bg-secondary">Deadline Passed</span>
+                {% else %}
+                    <span class="badge bg-success">Applications Open</span>
+                {% endif %}
+                <span class="badge badge-warning">
+                    <i class="fas fa-rupee-sign"></i> {{ scholarship.amount|inr }}
+                </span>
+            </div>
+            
+            <div class="grid grid-2 gap-1 mb-2">
+                <div><i class="fas fa-map-marker-alt"></i> {{ scholarship.country }}</div>
+                <div><i class="fas fa-graduation-cap"></i> {{ scholarship.degree_level }}</div>
+                <div><i class="fas fa-calendar"></i> {{ scholarship.deadline|date:"M d, Y" }}</div>
+                <div><i class="fas fa-building"></i> {{ scholarship.provider }}</div>
+            </div>
+            
+            <div class="flex-between">
+                <a href="{% url 'scholarship_detail' scholarship.id %}" class="btn btn-secondary">
+                    <i class="fas fa-info-circle"></i> Details
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'apply' scholarship.id %}" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Apply Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        Login to Apply
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="text-center" style="padding: 3rem;">
+                <i class="fas fa-search" style="font-size: 4rem; color: var(--light-text);"></i>
+                <h3>No scholarships found</h3>
+                <p>Try adjusting your filters or search terms</p>
+                <a href="{% url 'scholarships' %}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if scholarships.has_other_pages %}
+    <div class="flex-center gap-2 mt-3">
+        {% if scholarships.has_previous %}
+            <a href="?page={{ scholarships.previous_page_number }}" class="btn btn-secondary">Previous</a>
+        {% endif %}
+        
+        <span>Page {{ scholarships.number }} of {{ scholarships.paginator.num_pages }}</span>
+        
+        {% if scholarships.has_next %}
+            <a href="?page={{ scholarships.next_page_number }}" class="btn btn-secondary">Next</a>
+        {% endif %}
+    </div>
+        {% endif %}
+    </div>
+    </main>
+</div>
+
+<style>
+    .scholarships-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Sidebar Styles */
+    .filter-sidebar {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .sidebar-header h3 {
+        color: var(--primary);
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    .mobile-close-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .filter-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .filter-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .filter-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-title i {
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+    .filter-checkbox:hover {
+        background: #f3f4f6;
+    }
+
+    .filter-checkbox input[type="radio"],
+    .filter-checkbox input[type="checkbox"] {
+        margin-right: 0.5rem;
+        cursor: pointer;
+    }
+
+    .filter-checkbox span {
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    .filter-input, .filter-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: border-color 0.3s;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .filter-range {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .filter-range span {
+        text-align: center;
+        color: #666;
+        font-size: 0.85rem;
+    }
+
+    .filter-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn-block {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Main Content Styles */
+    .scholarships-main {
+        min-width: 0;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .top-search-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+    }
+
+    .mobile-filter-btn {
+        display: none;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .search-form-inline {
+        flex: 1;
+    }
+
+    .search-wrapper {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 50px;
+        padding: 0.5rem 1rem;
+        transition: border-color 0.3s;
+        position: relative;
+    }
+
+    .search-wrapper:focus-within {
+        border-color: var(--primary);
+    }
+
+    .search-wrapper i {
+        color: var(--primary);
+        margin-right: 0.75rem;
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 0.5rem;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .voice-search-btn {
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin: 0 0.5rem;
+        border-radius: 50%;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+    .voice-search-btn:hover {
+        background: #f3f4f6;
+        color: var(--primary);
+    }
+
+    .voice-search-btn.listening {
+        color: #ef4444;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.1);
+        }
+    }
+
+    .voice-search-status {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-align: center;
+        display: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
+
+    .voice-search-status.active {
+        display: block;
+    }
+
+    .voice-search-status.listening {
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .voice-search-status.success {
+        color: #10b981;
+        border-color: #10b981;
+    }
+
+    .voice-search-status.error {
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .search-form-inline {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+    }
+
+    .results-count {
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .active-filters-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 968px) {
+        .scholarships-container {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+        }
+
+        .filter-sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            z-index: 1000;
+            transition: left 0.3s;
+            max-height: 100vh;
+        }
+
+        .filter-sidebar.active {
+            left: 0;
+        }
+
+        .mobile-close-btn {
+            display: block;
+        }
+
+        .mobile-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .top-search-bar {
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* Sidebar Overlay for Mobile */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+</style>
+
+<!-- Mobile Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'search.js' %}"></script>
+<script>
+// Voice Search Functionality using Web Speech API
+(function() {
+    // Check if browser supports Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        console.warn('Web Speech API is not supported in this browser.');
+        const voiceBtn = document.getElementById('voiceSearchBtn');
+        if (voiceBtn) {
+            voiceBtn.style.display = 'none'; // Hide button if not supported
+        }
+        return;
+    }
+
+    // Initialize Speech Recognition
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN'; // English (India) - Change to 'en-US' for American English
+    recognition.continuous = false; // Stop after getting result
+    recognition.interimResults = true; // Show interim results while speaking
+    recognition.maxAlternatives = 1; // Get best match only
+
+    let isListening = false;
+    
+    const voiceBtn = document.getElementById('voiceSearchBtn');
+    const searchInput = document.getElementById('voiceSearchInput');
+    const statusDiv = document.getElementById('voiceSearchStatus');
+
+    if (!voiceBtn || !searchInput || !statusDiv) {
+        console.error('Voice search elements not found');
+        return;
+    }
+
+    // Show status message
+    function showStatus(message, type = 'info') {
+        statusDiv.textContent = message;
+        statusDiv.className = 'voice-search-status active ' + type;
+        
+        // Auto-hide after 3 seconds for success/error
+        if (type === 'success' || type === 'error') {
+            setTimeout(() => {
+                statusDiv.className = 'voice-search-status';
+            }, 3000);
+        }
+    }
+
+    // Hide status message
+    function hideStatus() {
+        statusDiv.className = 'voice-search-status';
+    }
+
+    // Start listening
+    function startListening() {
+        try {
+            isListening = true;
+            voiceBtn.classList.add('listening');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            showStatus('🎤 Listening... Speak now!', 'listening');
+            recognition.start();
+        } catch (error) {
+            console.error('Error starting recognition:', error);
+            showStatus('❌ Error starting microphone', 'error');
+            resetButton();
+        }
+    }
+
+    // Stop listening
+    function stopListening() {
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.error('Error stopping recognition:', error);
+        }
+        resetButton();
+    }
+
+    // Reset button state
+    function resetButton() {
+        isListening = false;
+        voiceBtn.classList.remove('listening');
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+    }
+
+    // Voice button click handler
+    voiceBtn.addEventListener('click', function() {
+        if (isListening) {
+            stopListening();
+            showStatus('Voice search cancelled', 'info');
+            setTimeout(hideStatus, 2000);
+        } else {
+            startListening();
+        }
+    });
+
+    // Handle interim and final results
+    recognition.addEventListener('result', function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Show interim results in real-time
+        if (interimTranscript) {
+            searchInput.value = interimTranscript;
+            showStatus('🎤 Listening: ' + interimTranscript, 'listening');
+        }
+
+        // Use final result
+        if (finalTranscript) {
+            searchInput.value = finalTranscript.trim();
+            showStatus('✅ Got it: "' + finalTranscript.trim() + '"', 'success');
+            resetButton();
+        }
+    });
+
+    // Handle speech recognition end
+    recognition.addEventListener('end', function() {
+        resetButton();
+        
+        if (searchInput.value.trim()) {
+            setTimeout(() => {
+                hideStatus();
+            }, 2000);
+        } else {
+            showStatus('No speech detected. Try again.', 'error');
+        }
+    });
+
+    // Handle errors
+    recognition.addEventListener('error', function(event) {
+        resetButton();
+        
+        let errorMessage = 'Error occurred';
+        
+        switch(event.error) {
+            case 'no-speech':
+                errorMessage = '❌ No speech detected. Please try again.';
+                break;
+            case 'audio-capture':
+                errorMessage = '❌ Microphone not found or not accessible.';
+                break;
+            case 'not-allowed':
+                errorMessage = '❌ Microphone permission denied. Please enable it in browser settings.';
+                break;
+            case 'network':
+                errorMessage = '❌ Network error. Check your internet connection.';
+                break;
+            case 'aborted':
+                errorMessage = 'Voice search cancelled';
+                break;
+            default:
+                errorMessage = '❌ Error: ' + event.error;
+        }
+        
+        showStatus(errorMessage, 'error');
+        console.error('Speech recognition error:', event.error);
+    });
+
+    // Handle start
+    recognition.addEventListener('start', function() {
+        console.log('Speech recognition started');
+    });
+
+    // Add keyboard shortcut (Ctrl+Shift+V or Cmd+Shift+V)
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'V') {
+            event.preventDefault();
+            if (!isListening) {
+                startListening();
+            }
+        }
+    });
+
+    // Show hint on first load
+    setTimeout(() => {
+        if (!localStorage.getItem('voiceSearchHintShown')) {
+            showStatus('💡 Tip: Click the microphone icon or press Ctrl+Shift+V for voice search', 'info');
+            localStorage.setItem('voiceSearchHintShown', 'true');
+            setTimeout(hideStatus, 5000);
+        }
+    }, 1000);
+})();
+
+function sortScholarships() {
+    const sortValue = document.getElementById('sortSelect').value;
+    const cards = Array.from(document.querySelectorAll('.scholarship-card'));
+    const container = cards[0].parentElement;
+    
+    cards.sort((a, b) => {
+        if (sortValue === 'deadline') {
+            return new Date(a.dataset.deadline) - new Date(b.dataset.deadline);
+        } else if (sortValue === 'amount') {
+            return parseFloat(b.dataset.amount) - parseFloat(a.dataset.amount);
+        }
+        return 0;
+    });
+    
+    cards.forEach(card => container.appendChild(card));
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('filterSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    
+    // Prevent body scroll when sidebar is open on mobile
+    if (sidebar.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
+
+// Auto-submit on filter change (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    const advancedForm = document.getElementById('advancedFilterForm');
+    if (advancedForm) {
+        // You can add auto-submit on radio button change
+        const radioInputs = advancedForm.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Optional: Auto-submit on change
+                // advancedForm.submit();
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - AI-Scholar{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.admin-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.stat-card .icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card.blue .icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stat-card.green .icon {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.stat-card.orange .icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.stat-card.purple .icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.stat-card.red .icon {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+}
+
+.stat-card h3 {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+}
+
+.stat-card .value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 1rem 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.admin-tab:hover {
+    color: var(--primary-color);
+}
+
+.admin-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.action-btn i {
+    font-size: 1.2rem;
+}
+
+/* Tables */
+.admin-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.admin-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.admin-table thead {
+    background: var(--primary-color);
+    color: white;
+}
+
+.admin-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.admin-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: #f5f5f5;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge.pending, .badge.submitted {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge.approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-tabs {
+        overflow-x: auto;
+    }
+    
+    .admin-tab {
+        white-space: nowrap;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <p>Welcome back, {{ user.username }}! Manage your scholarship platform here.</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>Total Students</h3>
+            <p class="value">{{ total_students }}</p>
+        </div>
+
+        <div class="stat-card green">
+            <div class="icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3>Total Scholarships</h3>
+            <p class="value">{{ total_scholarships }}</p>
+        </div>
+
+        <div class="stat-card orange">
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Active Scholarships</h3>
+            <p class="value">{{ active_scholarships }}</p>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h3>Total Applications</h3>
+            <p class="value">{{ total_applications }}</p>
+        </div>
+
+        <div class="stat-card red">
+            <div class="icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3>Pending Applications</h3>
+            <p class="value">{{ pending_applications }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-bolt"></i> Quick Actions</h2>
+        <div class="quick-actions">
+            <a href="{% url 'add_scholarship' %}" class="action-btn">
+                <i class="fas fa-plus-circle"></i>
+                Add Scholarship
+            </a>
+            <a href="{% url 'manage_scholarships' %}" class="action-btn">
+                <i class="fas fa-list"></i>
+                Manage Scholarships
+            </a>
+            <a href="{% url 'manage_applications' %}" class="action-btn">
+                <i class="fas fa-inbox"></i>
+                View Applications
+            </a>
+            <a href="{% url 'manage_users' %}" class="action-btn">
+                <i class="fas fa-user-graduate"></i>
+                Manage Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchTab('scholarships')">
+            <i class="fas fa-graduation-cap"></i> Scholarships
+        </button>
+        <button class="admin-tab" onclick="switchTab('applications')">
+            <i class="fas fa-file-alt"></i> Applications
+        </button>
+        <button class="admin-tab" onclick="switchTab('users')">
+            <i class="fas fa-users"></i> Users
+        </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div id="scholarships-tab" class="tab-content active">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2><i class="fas fa-graduation-cap"></i> Recent Scholarships</h2>
+                <a href="{% url 'manage_scholarships' %}" class="btn btn-primary">
+                    View All
+                </a>
+            </div>
+            
+            <div class="admin-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Provider</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Country</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Applications</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scholarship in recent_scholarships %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'edit_scholarship' scholarship.id %}" style="color: var(--primary-color); text-decoration: none;">
+                                    {{ scholarship.title|truncatewords:8 }}
+                                </a>
+                            </td>
+                            <td>{{ scholarship.provider }}</td>
+                            <td>₹{{ scholarship.amount|floatformat:0 }}</td>
+                            <td><span class="badge">{{ scholarship.get_scholarship_type_display }}</span></td>
+                            <td>{{ scholarship.country }}</td>
+                            <td>{{ scholarship.deadline|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {{ scholarship.status }}">
+                                    {{ scholarship.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ scholarship.applications_count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: #999;">
+                                No scholarships found. <a href="/admin/scholar_app/scholarship/add/">Add your first scholarship</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="applications-tab" class="tab-content">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2><i class="fas fa-file-alt"></i> Recent Applications</h2>
+                <a href="{% url 'manage_applications' %}" class="btn btn-primary">
+                    View All
+                </a>
+            </div>
+            
+            <div class="admin-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Scholarship</th>
+                            <th>Applied Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in recent_applications %}
+                        <tr>
+                            <td>{{ application.student.username }}</td>
+                            <td>{{ application.scholarship.title|truncatewords:10 }}</td>
+                            <td>{{ application.applied_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {{ application.status }}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'review_application' application.id %}" class="btn btn-sm btn-primary">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: #999;">
+                                No applications yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="users-tab" class="tab-content">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2><i class="fas fa-users"></i> Recent Users</h2>
+                <a href="{% url 'manage_users' %}" class="btn btn-primary">
+                    View All
+                </a>
+            </div>
+            
+            <div class="admin-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Country</th>
+                            <th>Degree</th>
+                            <th>GPA</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in recent_users %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'manage_users' %}" style="color: var(--primary-color); text-decoration: none;">
+                                    {{ profile.user.username }}
+                                </a>
+                            </td>
+                            <td>{{ profile.user.email }}</td>
+                            <td>{{ profile.country }}</td>
+                            <td>{{ profile.get_current_degree_display }}</td>
+                            <td>{{ profile.gpa|default:"-" }}</td>
+                            <td>{{ profile.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: #999;">
+                                No users found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.admin-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Add active to clicked button
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Dashboard - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Welcome Section -->
+    <div class="card mb-3">
+        <div class="flex-between">
+            <div>
+                <h1>👋 Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+                <p>Here's your personalized scholarship dashboard</p>
+            </div>
+            <a href="{% url 'profile' %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-4 mb-3">
+        <div class="card text-center">
+            <h2 style="color: var(--primary-color);">{{ recommended_count }}</h2>
+            <p>Recommended for You</p>
+        </div>
+        <div class="card text-center">
+            <h2 style="color: var(--success);">{{ applied_count }}</h2>
+            <p>Applications Submitted</p>
+        </div>
+        <div class="card text-center">
+            <h2 style="color: var(--warning);">{{ pending_count }}</h2>
+            <p>Pending Review</p>
+        </div>
+        <div class="card text-center">
+            <h2 style="color: var(--accent-color);">{{ approved_count }}</h2>
+            <p>Approved</p>
+        </div>
+    </div>
+
+    <!-- AI Recommendations -->
+    <section class="mb-3">
+        <div class="flex-between mb-2">
+            <h2>🤖 AI-Recommended Scholarships</h2>
+            <button class="btn btn-outline" onclick="refreshRecommendations()">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+        </div>
+        <div class="grid grid-2">
+            {% for scholarship in recommendations %}
+            <div class="card">
+                <div class="flex-between mb-2">
+                    <h3 class="card-title">{{ scholarship.title }}</h3>
+                    <span class="badge badge-success">{{ scholarship.match_score }}% Match</span>
+                </div>
+                {% if scholarship.deadline and scholarship.deadline < today %}
+                    <span class="badge bg-secondary">Deadline Passed</span>
+                {% else %}
+                    <span class="badge bg-success">Applications Open</span>
+                {% endif %}
+                <p class="card-text">{{ scholarship.description|truncatewords:15 }}</p>
+                <div class="mb-2">
+                    <span class="badge badge-primary">{{ scholarship.type }}</span>
+                    <span class="badge badge-warning"><i class="fas fa-rupee-sign"></i> {{ scholarship.amount|inr }}</span>
+                </div>
+                <div class="flex-between">
+                    <span><i class="fas fa-calendar"></i> Deadline: {{ scholarship.deadline }}</span>
+                    <a href="{% url 'apply' scholarship.id %}" class="btn btn-primary">Apply Now</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card">
+                <p class="text-center">
+                    <i class="fas fa-inbox" style="font-size: 3rem; color: var(--light-text);"></i><br>
+                    No recommendations yet. Complete your profile to get personalized matches!
+                </p>
+                <div class="text-center">
+                    <a href="{% url 'profile' %}" class="btn btn-primary">Complete Profile</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Application Status -->
+    <section class="mb-3">
+        <h2 class="mb-2">📊 Your Applications</h2>
+        <div class="card">
+            {% if applications %}
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                        <th style="padding: 1rem;">Scholarship</th>
+                        <th style="padding: 1rem;">Applied Date</th>
+                        <th style="padding: 1rem;">Status</th>
+                        <th style="padding: 1rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1rem;">{{ app.scholarship.title }}</td>
+                        <td style="padding: 1rem;">{{ app.applied_date|date:"M d, Y" }}</td>
+                        <td style="padding: 1rem;">
+                            {% if app.status == 'pending' %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% elif app.status == 'approved' %}
+                                <span class="badge badge-success">Approved</span>
+                            {% elif app.status == 'rejected' %}
+                                <span class="badge badge-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge badge-primary">{{ app.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <a href="{% url 'application_detail' app.id %}" class="btn btn-outline" style="padding: 0.5rem 1rem;">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-center" style="padding: 2rem;">
+                You haven't applied to any scholarships yet. Start exploring!
+            </p>
+            <div class="text-center">
+                <a href="{% url 'scholarships' %}" class="btn btn-primary">Browse Scholarships</a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Upcoming Deadlines -->
+    <section class="mb-3">
+        <h2 class="mb-2">⏰ Upcoming Deadlines</h2>
+        <div class="grid grid-3">
+            {% for deadline in upcoming_deadlines %}
+            <div class="card">
+                <h4>{{ deadline.scholarship.title }}</h4>
+                <p><i class="fas fa-calendar-alt"></i> {{ deadline.scholarship.deadline|date:"F d, Y" }}</p>
+                <p style="color: var(--danger);">{{ deadline.days_left }} days left</p>
+                <a href="{% url 'scholarship_detail' deadline.scholarship.id %}" class="btn btn-primary">View Details</a>
+            </div>
+            {% empty %}
+            <div class="card">
+                <p class="text-center">No upcoming deadlines</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section>
+        <h2 class="mb-2">⚡ Quick Actions</h2>
+        <div class="grid grid-4">
+            <a href="{% url 'scholarships' %}" class="card text-center" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-search" style="font-size: 2rem; color: var(--primary-color);"></i>
+                <h4>Browse All</h4>
+                <p>Explore scholarships</p>
+            </a>
+            <a href="{% url 'chatbot' %}" class="card text-center" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-robot" style="font-size: 2rem; color: var(--success);"></i>
+                <h4>Ask AI</h4>
+                <p>Get instant help</p>
+            </a>
+            <a href="{% url 'profile' %}" class="card text-center" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-user-edit" style="font-size: 2rem; color: var(--accent-color);"></i>
+                <h4>Update Profile</h4>
+                <p>Keep it current</p>
+            </a>
+            <a href="#" class="card text-center" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-bell" style="font-size: 2rem; color: var(--warning);"></i>
+                <h4>Notifications</h4>
+                <p>Stay updated</p>
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshRecommendations() {
+    // Reload recommendations
+    window.location.reload();
+}
+</script>
+{% endblock %}

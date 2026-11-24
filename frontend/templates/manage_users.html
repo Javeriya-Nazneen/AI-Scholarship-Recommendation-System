@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="admin-container" style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h1 style="margin: 0; font-size: 2rem;"><i class="fas fa-users"></i> Manage Users</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">View and manage all registered users</p>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2><i class="fas fa-user-graduate"></i> All Users ({{ users.count }})</h2>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="admin-table" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 1000px;">
+                <thead style="background: var(--primary-color); color: white;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left;">Username</th>
+                        <th style="padding: 1rem; text-align: left;">Email</th>
+                        <th style="padding: 1rem; text-align: left;">Country</th>
+                        <th style="padding: 1rem; text-align: left;">Degree</th>
+                        <th style="padding: 1rem; text-align: left;">GPA</th>
+                        <th style="padding: 1rem; text-align: left;">Gender</th>
+                        <th style="padding: 1rem; text-align: left;">Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in users %}
+                    <tr style="border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 1rem;">
+                            <strong>{{ profile.user.username }}</strong>
+                        </td>
+                        <td style="padding: 1rem;">{{ profile.user.email }}</td>
+                        <td style="padding: 1rem;">{{ profile.country|default:"-" }}</td>
+                        <td style="padding: 1rem;">{{ profile.get_current_degree_display|default:"-" }}</td>
+                        <td style="padding: 1rem;">{{ profile.gpa|default:"-" }}</td>
+                        <td style="padding: 1rem;">{{ profile.get_gender_display|default:"-" }}</td>
+                        <td style="padding: 1rem;">{{ profile.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: #999;">
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

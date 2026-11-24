@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - AI-Scholar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-3">👤 My Profile</h1>
+    
+    <div class="grid grid-3 mb-3">
+        <div class="card text-center">
+            <h2 style="color: var(--primary-color);">{{ profile.calculate_profile_completion }}%</h2>
+            <p>Profile Complete</p>
+        </div>
+        <div class="card text-center">
+            <h2 style="color: var(--success);">{{ user.applications.count }}</h2>
+            <p>Applications</p>
+        </div>
+        <div class="card text-center">
+            <h2 style="color: var(--accent-color);">{{ user.documents.count }}</h2>
+            <p>Documents</p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Edit Profile</h2>
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" class="btn btn-outline" onclick="toggleEditMode()">
+                    <i class="fas fa-edit"></i> <span id="editBtnText">Edit Mode</span>
+                </button>
+                <button type="button" class="btn btn-info" onclick="autoFillProfile()">
+                    <i class="fas fa-magic"></i> Quick Fill
+                </button>
+            </div>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="margin-bottom: 1rem; padding: 1rem; border-radius: 8px; background: {% if message.tags == 'error' %}#fee{% else %}#efe{% endif %};">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="POST" id="profileForm">
+            {% csrf_token %}
+            
+            <!-- Personal Information Section -->
+            <div class="profile-section">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center;">
+                    <i class="fas fa-user" style="margin-right: 10px;"></i> Personal Information
+                </h3>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ profile.full_name }}" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Age</label>
+                        <input type="number" name="age" class="form-control" value="{{ profile.age }}" min="5" max="100" placeholder="Your age">
+                    </div>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="M" {% if profile.gender == 'M' %}selected{% endif %}>Male</option>
+                            <option value="F" {% if profile.gender == 'F' %}selected{% endif %}>Female</option>
+                            <option value="O" {% if profile.gender == 'O' %}selected{% endif %}>Other</option>
+                            <option value="N" {% if profile.gender == 'N' %}selected{% endif %}>Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Phone Number 
+                            {% if profile.phone_verified %}
+                                <span style="color: green;"><i class="fas fa-check-circle"></i> Verified</span>
+                            {% endif %}
+                        </label>
+                        <input type="tel" name="phone" class="form-control" value="{{ profile.phone }}" placeholder="+91 9876543210">
+                    </div>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-control">
+                            <option value="GEN" {% if profile.category == 'GEN' %}selected{% endif %}>General</option>
+                            <option value="SC" {% if profile.category == 'SC' %}selected{% endif %}>Scheduled Caste (SC)</option>
+                            <option value="ST" {% if profile.category == 'ST' %}selected{% endif %}>Scheduled Tribe (ST)</option>
+                            <option value="OBC" {% if profile.category == 'OBC' %}selected{% endif %}>Other Backward Class (OBC)</option>
+                            <option value="EWS" {% if profile.category == 'EWS' %}selected{% endif %}>Economically Weaker Section (EWS)</option>
+                            <option value="MINORITY" {% if profile.category == 'MINORITY' %}selected{% endif %}>Minority</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Annual Family Income (₹)</label>
+                        <input type="number" name="family_income" class="form-control" value="{{ profile.family_income }}" placeholder="e.g., 500000">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Address Information Section -->
+            <div class="profile-section" style="margin-top: 2rem;">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center;">
+                    <i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Address Information
+                </h3>
+                
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" class="form-control" value="{{ profile.city }}" placeholder="e.g., Mumbai">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <input type="text" name="state" class="form-control" value="{{ profile.state }}" placeholder="e.g., Maharashtra">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Country</label>
+                        <input type="text" name="country" class="form-control" value="{{ profile.country }}" placeholder="e.g., India">
+                    </div>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" name="location" class="form-control" value="{{ profile.location }}" placeholder="Current location">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Zipcode</label>
+                        <input type="text" name="zipcode" class="form-control" value="{{ profile.zipcode }}" placeholder="e.g., 400001">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Academic Information Section -->
+            <div class="profile-section" style="margin-top: 2rem;">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center;">
+                    <i class="fas fa-graduation-cap" style="margin-right: 10px;"></i> Academic Information
+                </h3>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Education Level</label>
+                        <select name="education_level" class="form-control">
+                            <option value="">Select Level</option>
+                            <option value="HS" {% if profile.education_level == 'HS' %}selected{% endif %}>High School</option>
+                            <option value="UG" {% if profile.education_level == 'UG' %}selected{% endif %}>Undergraduate</option>
+                            <option value="PG" {% if profile.education_level == 'PG' %}selected{% endif %}>Postgraduate</option>
+                            <option value="PHD" {% if profile.education_level == 'PHD' %}selected{% endif %}>PhD</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Course/Stream</label>
+                        <input type="text" name="course_stream" class="form-control" value="{{ profile.course_stream }}" placeholder="e.g., B.Tech, B.A., M.Sc.">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Field of Study</label>
+                    <input type="text" name="field_of_study" class="form-control" value="{{ profile.field_of_study }}" placeholder="e.g., Computer Science, Biology">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Institution Name</label>
+                    <input type="text" name="institution" class="form-control" value="{{ profile.institution }}" placeholder="Your university or college">
+                </div>
+                
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label class="form-label">CGPA (1-10 scale)</label>
+                        <input type="number" step="0.01" min="1" max="10" name="gpa" class="form-control" value="{{ profile.gpa }}" placeholder="e.g., 8.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Marks Percentage</label>
+                        <input type="number" step="0.01" min="0" max="100" name="marks_percentage" class="form-control" value="{{ profile.marks_percentage }}" placeholder="e.g., 85.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Graduation Year</label>
+                        <input type="number" name="graduation_year" class="form-control" value="{{ profile.graduation_year }}" placeholder="e.g., 2025">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Information Section -->
+            <div class="profile-section" style="margin-top: 2rem;">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center;">
+                    <i class="fas fa-star" style="margin-right: 10px;"></i> Additional Information
+                </h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Skills (comma-separated)</label>
+                    <textarea name="skills" class="form-control" rows="2" placeholder="e.g., Python, Leadership, Research, Problem Solving">{{ profile.skills }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Interests (comma-separated)</label>
+                    <textarea name="interests" class="form-control" rows="2" placeholder="e.g., Machine Learning, Environmental Science, Music, Sports">{{ profile.interests }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Achievements</label>
+                    <textarea name="achievements" class="form-control" rows="3" placeholder="List your notable achievements">{{ profile.achievements }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Extracurricular Activities</label>
+                    <textarea name="extracurricular" class="form-control" rows="3" placeholder="Describe your extracurricular activities">{{ profile.extracurricular }}</textarea>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Save All Changes
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline" style="flex: 1;">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let editMode = false;
+    
+    function toggleEditMode() {
+        editMode = !editMode;
+        const form = document.getElementById('profileForm');
+        const inputs = form.querySelectorAll('input, select, textarea');
+        const editBtnText = document.getElementById('editBtnText');
+        
+        inputs.forEach(input => {
+            if (editMode) {
+                input.removeAttribute('readonly');
+                input.removeAttribute('disabled');
+                input.style.background = 'white';
+            } else {
+                input.setAttribute('readonly', 'readonly');
+                input.style.background = '#f5f5f5';
+            }
+        });
+        
+        editBtnText.textContent = editMode ? 'View Mode' : 'Edit Mode';
+    }
+    
+    function autoFillProfile() {
+        if (!confirm('This will auto-fill your profile with sample data. Continue?')) {
+            return;
+        }
+        
+        // Sample data for quick testing
+        document.querySelector('[name="full_name"]').value = 'Rajesh Kumar';
+        document.querySelector('[name="age"]').value = '21';
+        document.querySelector('[name="gender"]').value = 'M';
+        document.querySelector('[name="phone"]').value = '+91 9876543210';
+        document.querySelector('[name="category"]').value = 'GEN';
+        document.querySelector('[name="family_income"]').value = '500000';
+        document.querySelector('[name="city"]').value = 'Mumbai';
+        document.querySelector('[name="state"]').value = 'Maharashtra';
+        document.querySelector('[name="country"]').value = 'India';
+        document.querySelector('[name="location"]').value = 'Andheri, Mumbai';
+        document.querySelector('[name="zipcode"]').value = '400053';
+        document.querySelector('[name="education_level"]').value = 'UG';
+        document.querySelector('[name="course_stream"]').value = 'B.Tech';
+        document.querySelector('[name="field_of_study"]').value = 'Computer Science';
+        document.querySelector('[name="institution"]').value = 'IIT Bombay';
+        document.querySelector('[name="gpa"]').value = '8.5';
+        document.querySelector('[name="marks_percentage"]').value = '85.5';
+        document.querySelector('[name="graduation_year"]').value = '2025';
+        document.querySelector('[name="skills"]').value = 'Python, Java, Machine Learning, Problem Solving';
+        document.querySelector('[name="interests"]').value = 'Artificial Intelligence, Robotics, Cricket, Photography';
+        document.querySelector('[name="achievements"]').value = 'Won State-level Science Competition, Published research paper';
+        document.querySelector('[name="extracurricular"]').value = 'Captain of College Cricket Team, Member of Coding Club';
+        
+        alert('Profile auto-filled with sample data! Click "Save All Changes" to update.');
+    }
+    
+    // Form validation
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const gpa = parseFloat(document.querySelector('[name="gpa"]').value);
+        const marks = parseFloat(document.querySelector('[name="marks_percentage"]').value);
+        
+        if (gpa && (gpa < 1 || gpa > 10)) {
+            e.preventDefault();
+            alert('CGPA must be between 1 and 10');
+            return false;
+        }
+        
+        if (marks && (marks < 0 || marks > 100)) {
+            e.preventDefault();
+            alert('Marks percentage must be between 0 and 100');
+            return false;
+        }
+    });
+    
+    // Auto-save notification
+    let saveTimeout;
+    document.querySelectorAll('#profileForm input, #profileForm select, #profileForm textarea').forEach(field => {
+        field.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            // Show "unsaved changes" indicator
+            const saveBtn = document.querySelector('button[type="submit"]');
+            if (saveBtn) {
+                saveBtn.style.background = '#f59e0b';
+                saveBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Unsaved Changes';
+                
+                saveTimeout = setTimeout(() => {
+                    saveBtn.style.background = '';
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save All Changes';
+                }, 3000);
+            }
+        });
+    });
+</script>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .profile-section {
+        padding: 1.5rem;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .grid-2, .grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
